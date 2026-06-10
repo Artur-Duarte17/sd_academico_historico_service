@@ -3,6 +3,9 @@ package br.edu.ifgoiano.academico.sd_academico_historico_service.controller;
 import br.edu.ifgoiano.academico.sd_academico_historico_service.dto.HistoricoResponseDTO;
 import br.edu.ifgoiano.academico.sd_academico_historico_service.entity.HistoricoAcademico;
 import br.edu.ifgoiano.academico.sd_academico_historico_service.repository.HistoricoAcademicoRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/historicos")
+@Tag(name = "Histórico Acadêmico", description = "Consulta do histórico gerado a partir dos eventos de matrícula")
 public class HistoricoAcademicoController {
 
     // Logger para rastreamento de requisições
@@ -35,6 +39,7 @@ public class HistoricoAcademicoController {
      * @return lista de todos os históricos
      */
     @GetMapping
+    @Operation(summary = "Listar históricos", description = "Retorna todos os registros de histórico acadêmico.")
     public ResponseEntity<List<HistoricoResponseDTO>> listarTodosOsHistoricos() {
         logger.info("[HISTORICO-SERVICE] Listando todos os históricos acadêmicos");
         return ResponseEntity.ok(paraResponse(historicoRepository.findAll()));
@@ -46,7 +51,9 @@ public class HistoricoAcademicoController {
      * @return histórico encontrado ou 404 se não existir
      */
     @GetMapping("/{id}")
-    public ResponseEntity<HistoricoResponseDTO> buscarHistorico(@PathVariable Long id) {
+    @Operation(summary = "Buscar histórico por ID", description = "Retorna o registro de histórico com o ID informado, ou 404.")
+    public ResponseEntity<HistoricoResponseDTO> buscarHistorico(
+            @Parameter(description = "ID do histórico", example = "1") @PathVariable Long id) {
         logger.info("[HISTORICO-SERVICE] Buscando histórico ID: {}", id);
         return historicoRepository.findById(id)
                 .map(this::paraResponse)
@@ -60,7 +67,9 @@ public class HistoricoAcademicoController {
      * @return lista de históricos do aluno
      */
     @GetMapping("/aluno/{alunoId}")
-    public ResponseEntity<List<HistoricoResponseDTO>> listarPorAluno(@PathVariable Long alunoId) {
+    @Operation(summary = "Listar históricos por aluno", description = "Retorna o histórico de um aluno.")
+    public ResponseEntity<List<HistoricoResponseDTO>> listarPorAluno(
+            @Parameter(description = "ID do aluno", example = "1") @PathVariable Long alunoId) {
         logger.info("[HISTORICO-SERVICE] Listando históricos do aluno: {}", alunoId);
         return ResponseEntity.ok(paraResponse(historicoRepository.findByAlunoId(alunoId)));
     }
@@ -71,7 +80,9 @@ public class HistoricoAcademicoController {
      * @return lista de históricos do tipo especificado
      */
     @GetMapping("/tipo/{tipoEvento}")
-    public ResponseEntity<List<HistoricoResponseDTO>> listarPorTipo(@PathVariable String tipoEvento) {
+    @Operation(summary = "Listar históricos por tipo", description = "Retorna os registros de um tipo de evento.")
+    public ResponseEntity<List<HistoricoResponseDTO>> listarPorTipo(
+            @Parameter(description = "Tipo do evento", example = "MATRICULA_CRIADA") @PathVariable String tipoEvento) {
         logger.info("[HISTORICO-SERVICE] Listando históricos do tipo: {}", tipoEvento);
         return ResponseEntity.ok(paraResponse(historicoRepository.findByTipoEvento(tipoEvento)));
     }
