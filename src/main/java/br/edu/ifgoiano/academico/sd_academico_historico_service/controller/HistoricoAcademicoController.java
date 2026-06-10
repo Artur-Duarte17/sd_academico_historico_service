@@ -1,5 +1,6 @@
 package br.edu.ifgoiano.academico.sd_academico_historico_service.controller;
 
+import br.edu.ifgoiano.academico.sd_academico_historico_service.dto.HistoricoResponseDTO;
 import br.edu.ifgoiano.academico.sd_academico_historico_service.entity.HistoricoAcademico;
 import br.edu.ifgoiano.academico.sd_academico_historico_service.repository.HistoricoAcademicoRepository;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class HistoricoAcademicoController {
 
     // Logger para rastreamento de requisições
     private static final Logger logger = LoggerFactory.getLogger(HistoricoAcademicoController.class);
-    
+
     private final HistoricoAcademicoRepository historicoRepository;
 
     /**
@@ -34,10 +35,9 @@ public class HistoricoAcademicoController {
      * @return lista de todos os históricos
      */
     @GetMapping
-    public ResponseEntity<List<HistoricoAcademico>> listarTodosOsHistoricos() {
+    public ResponseEntity<List<HistoricoResponseDTO>> listarTodosOsHistoricos() {
         logger.info("[HISTORICO-SERVICE] Listando todos os históricos acadêmicos");
-        List<HistoricoAcademico> historicos = historicoRepository.findAll();
-        return ResponseEntity.ok(historicos);
+        return ResponseEntity.ok(paraResponse(historicoRepository.findAll()));
     }
 
     /**
@@ -46,9 +46,10 @@ public class HistoricoAcademicoController {
      * @return histórico encontrado ou 404 se não existir
      */
     @GetMapping("/{id}")
-    public ResponseEntity<HistoricoAcademico> buscarHistorico(@PathVariable Long id) {
+    public ResponseEntity<HistoricoResponseDTO> buscarHistorico(@PathVariable Long id) {
         logger.info("[HISTORICO-SERVICE] Buscando histórico ID: {}", id);
         return historicoRepository.findById(id)
+                .map(this::paraResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -59,10 +60,9 @@ public class HistoricoAcademicoController {
      * @return lista de históricos do aluno
      */
     @GetMapping("/aluno/{alunoId}")
-    public ResponseEntity<List<HistoricoAcademico>> listarPorAluno(@PathVariable Long alunoId) {
+    public ResponseEntity<List<HistoricoResponseDTO>> listarPorAluno(@PathVariable Long alunoId) {
         logger.info("[HISTORICO-SERVICE] Listando históricos do aluno: {}", alunoId);
-        List<HistoricoAcademico> historicos = historicoRepository.findByAlunoId(alunoId);
-        return ResponseEntity.ok(historicos);
+        return ResponseEntity.ok(paraResponse(historicoRepository.findByAlunoId(alunoId)));
     }
 
     /**
@@ -71,11 +71,26 @@ public class HistoricoAcademicoController {
      * @return lista de históricos do tipo especificado
      */
     @GetMapping("/tipo/{tipoEvento}")
-    public ResponseEntity<List<HistoricoAcademico>> listarPorTipo(@PathVariable String tipoEvento) {
+    public ResponseEntity<List<HistoricoResponseDTO>> listarPorTipo(@PathVariable String tipoEvento) {
         logger.info("[HISTORICO-SERVICE] Listando históricos do tipo: {}", tipoEvento);
-        List<HistoricoAcademico> historicos = historicoRepository.findByTipoEvento(tipoEvento);
-        return ResponseEntity.ok(historicos);
+        return ResponseEntity.ok(paraResponse(historicoRepository.findByTipoEvento(tipoEvento)));
+    }
+
+    /**
+     * Converte a entidade HistoricoAcademico no DTO de resposta exposto pela API.
+     */
+    private HistoricoResponseDTO paraResponse(HistoricoAcademico historico) {
+        HistoricoResponseDTO response = new HistoricoResponseDTO();
+        response.setId(historico.getId());
+        response.setAlunoId(historico.getAlunoId());
+        response.setTurmaId(historico.getTurmaId());
+        response.setTipoEvento(historico.getTipoEvento());
+        response.setDescricao(historico.getDescricao());
+        response.setDataEvento(historico.getDataEvento());
+        return response;
+    }
+
+    private List<HistoricoResponseDTO> paraResponse(List<HistoricoAcademico> historicos) {
+        return historicos.stream().map(this::paraResponse).toList();
     }
 }
-
-
